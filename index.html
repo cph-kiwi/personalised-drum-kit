@@ -10,42 +10,51 @@
   </head>
 
   <body>
-    <div class="keys">
-      <div data-key="65" class="key">
-        <kbd>A</kbd>
-        <span class="sound">clap</span>
+    <div class="keys-container">
+      <div class="keys">
+        <div data-key="65" class="key">
+          <kbd>A</kbd>
+          <span class="sound">clap</span>
+        </div>
+        <div data-key="83" class="key">
+          <kbd>S</kbd>
+          <span class="sound">hihat</span>
+        </div>
+        <div data-key="68" class="key">
+          <kbd>D</kbd>
+          <span class="sound">kick</span>
+        </div>
+        <div data-key="70" class="key">
+          <kbd>F</kbd>
+          <span class="sound">openhat</span>
+        </div>
+        <div data-key="71" class="key">
+          <kbd>G</kbd>
+          <span class="sound">boom</span>
+        </div>
+        <div data-key="72" class="key">
+          <kbd>H</kbd>
+          <span class="sound">ride</span>
+        </div>
+        <div data-key="74" class="key">
+          <kbd>J</kbd>
+          <span class="sound">snare</span>
+        </div>
+        <div data-key="75" class="key">
+          <kbd>K</kbd>
+          <span class="sound">tom</span>
+        </div>
+        <div data-key="76" class="key">
+          <kbd>L</kbd>
+          <span class="sound">tink</span>
+        </div>
       </div>
-      <div data-key="83" class="key">
-        <kbd>S</kbd>
-        <span class="sound">hihat</span>
-      </div>
-      <div data-key="68" class="key">
-        <kbd>D</kbd>
-        <span class="sound">kick</span>
-      </div>
-      <div data-key="70" class="key">
-        <kbd>F</kbd>
-        <span class="sound">openhat</span>
-      </div>
-      <div data-key="71" class="key">
-        <kbd>G</kbd>
-        <span class="sound">boom</span>
-      </div>
-      <div data-key="72" class="key">
-        <kbd>H</kbd>
-        <span class="sound">ride</span>
-      </div>
-      <div data-key="74" class="key">
-        <kbd>J</kbd>
-        <span class="sound">snare</span>
-      </div>
-      <div data-key="75" class="key">
-        <kbd>K</kbd>
-        <span class="sound">tom</span>
-      </div>
-      <div data-key="76" class="key">
-        <kbd>L</kbd>
-        <span class="sound">tink</span>
+    </div>
+    <div class="metronome-container">
+      <div class="metronome">
+        <label class="metronome-label">Metronome:</label>
+        <input class="metronome-input" id="bpm" value="120" />
+        <button class="metronome-button">Play</button>
       </div>
     </div>
 
@@ -67,14 +76,16 @@
         --plum: #781b2b;
         --burgondy: #4b111b;
         --black: #090c08;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
       }
 
       .keys {
         display: flex;
         flex: 1;
-        min-height: 100vh;
-        align-items: center;
         justify-content: center;
+        padding-top: 100px;
       }
 
       .key {
@@ -85,6 +96,7 @@
         padding: 1rem 0.5rem;
         transition: all 0.07s ease;
         width: 10rem;
+        height: 80px;
         text-align: center;
         color: var(--pink);
         background: rgba(0, 0, 0, 0.4);
@@ -108,6 +120,28 @@
         letter-spacing: 0.1rem;
         color: var(--pink);
       }
+
+      .metronome-container {
+        padding-top: 100px;
+      }
+
+      .metronome {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+      }
+
+      .metronome-label {
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1rem;
+        color: var(--pink);
+        padding-right: 20px;
+      }
+
+      .metronome-input {
+        width: 6em;
+      }
     </style>
 
     <audio data-key="65" src="sounds/clap.wav"></audio>
@@ -119,15 +153,16 @@
     <audio data-key="74" src="sounds/snare.wav"></audio>
     <audio data-key="75" src="sounds/tom.wav"></audio>
     <audio data-key="76" src="sounds/tink.wav"></audio>
+    <audio data-metTick="" src=""></audio>
 
     <script>
       function playSound(e) {
-        const audio = document.querySelector(`audio[data-key="${e.keyCode}"]`);
+        const audio = document.querySelector(`audio[data-key="${e.keyCode}"]`); // inner () passed as a string // "${}" evaluates as javascript // (`audio[data-key="71"]) // stuff in () is resolved first
         const key = document.querySelector(`.key[data-key="${e.keyCode}"]`);
         if (!audio) return; // Stop the function from running all together.
         audio.currentTime = 0; // Rewind to the start.
         audio.play();
-        key.classList.add("playing");
+        key.classList.add("playing"); // "add" because existing classes should remain
       }
 
       function removeTransition(e) {
@@ -140,6 +175,38 @@
         key.addEventListener("transitionend", removeTransition)
       );
       window.addEventListener("keydown", playSound);
+      let metronome; // undefined
+
+      // document.querySelector(".metronome-button").addEventListener;
+      const metButton = document.querySelector(".metronome-button");
+      metButton.addEventListener("click", metStartStop);
+      const metInput = document.querySelector(".metronome-input");
+      metInput.addEventListener("input", () => {
+        // when input value changes the function stops and then starts again with the new input
+        metStartStop();
+        metStartStop();
+      });
+
+      function metStartStop() {
+        if (metronome) {
+          clearInterval(metronome);
+          metronome = undefined;
+          metButton.innerText = "Play";
+          return;
+        }
+        const inputValue = metInput.value;
+        const bpm = Number(inputValue);
+        const audio = document.querySelector(`audio[data-key="71"]`);
+        if (!audio) return;
+
+        const interval = (60 / bpm) * 1000;
+        metronome = setInterval(() => {
+          // metronome has been defined
+          audio.currentTime = 0;
+          audio.play();
+        }, interval);
+        metButton.innerText = "Stop";
+      }
     </script>
   </body>
 </html>
